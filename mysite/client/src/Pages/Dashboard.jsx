@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Plot from "react-plotly.js";
 import QuantilePlot from "../Components/QuantilePlot";
 import QQPlot from "../Components/QQPlot";
 import ScatterPlot from "../Components/ScatterPlot";
 import BoxPlot from "../Components/BoxPlot";
 import Histogram from "../Components/Histogram";
-import ChiSquareCalculator from "../Components/ChiSuareCalculator";
 
 export const Dashboard = ({ data }) => {
   // const plotLayout = {
@@ -40,6 +38,8 @@ export const Dashboard = ({ data }) => {
   const [quartile, setQuartile] = useState([]);
   const [five, setFive] = useState([]);
 
+  const [options, setOptions] = useState([]);
+
   const [selectedKey, setSelectedKey] = useState(); // Initialize with the first key
   const handleKeyChange = (event) => {
     setSelectedKey(event.target.value);
@@ -66,6 +66,10 @@ export const Dashboard = ({ data }) => {
     setFive(finalData?.five_number_summary);
   };
 
+  useEffect(() => {
+    const extractedOptions = Object.keys(data.statistics);
+    setOptions(extractedOptions);
+  },[]);
   return (
     <>
       {data ? <>
@@ -198,7 +202,7 @@ export const Dashboard = ({ data }) => {
                         value={selectedKey}
                         onChange={handleKeyChange}
                       >
-                        {Object.keys(data.statistics).map((key) => (
+                        {Object.keys(data?.statistics).map((key) => (
                           <option key={key} value={key}>
                             {key}
                           </option>
@@ -459,7 +463,6 @@ export const Dashboard = ({ data }) => {
             </div>
           </div>
           {/* Add more elements here */}
-          <ChiSquareCalculator />
         </main>
         <div fixed-plugin>
           <a
@@ -470,7 +473,11 @@ export const Dashboard = ({ data }) => {
           </a>
         </div>
       </div>
-       </> : <>No data loaded</>}
+       </> :<div className="flex items-center justify-center h-screen">
+  <p className="text-center text-gray-600 text-xl">No data loaded<br></br>
+  Go to Home </p>
+</div>
+}
     </>
   );
 };

@@ -22,6 +22,6 @@ from . import views
 urlpatterns = [ 
     path("admin", admin.site.urls),
     path('calculate', views.upload_csv, name='upload_csv' ), 
-    path('chi',views.chi_square_analysis2, name = 'chi_square')
+    path('pearson', views.calculate_pearson, name='pearson' ), 
 ]
 

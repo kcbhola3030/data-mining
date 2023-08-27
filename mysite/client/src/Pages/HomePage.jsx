@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, {  useState } from "react";
 import "./HomePage.css";
 import home from "./home.jpg";
 import { Dashboard } from "./Dashboard";
 import axios from "axios";
-import MatrixInput from "../Components/MatrixInput";
 
 const HomePage = () => {
   const [showDashboard, setShowDashboard] = useState(false);

@@ -184,51 +184,37 @@ def calculate_standard_deviation(data):
         return None
     return math.sqrt(variance)
 
-
-def chi_square_analysis(attribute1_data, attribute2_data):
-    # Perform Chi-Square Test
-    contingency_table = np.histogram2d(attribute1_data, attribute2_data, bins=2)[0]
-    chi2, p, _, _ = chi2_contingency(contingency_table)
-
-    # Determine correlation conclusion based on p-value
-    is_correlated = p < 0.05
-
-    response_data = {
-        'chi2': chi2,
-        'is_correlated': is_correlated
-    }
-
-    return JsonResponse(response_data)
+import csv
+from scipy.stats import pearsonr
+from django.http import JsonResponse
+import json
 
 @csrf_exempt  # Exempt CSRF protection for demonstration purposes, consider adding proper protection
-def chi_square_analysis2(request):
+def calculate_pearson(request):
     if request.method == 'POST':
-        data = request.POST  # Assuming you're sending data in the POST request
+        data = json.loads(request.body.decode('utf-8'))
+        array1 = data.get('array1', [])
+        array2 = data.get('array2', [])
 
-        attribute1_data = [value for value in data.getlist('attribute1_data[]')]
-        attribute2_data = [int(value) for value in data.getlist('attribute2_data[]')]  # Convert to integers
+        # Convert the string values in the arrays to floats
+        array1 = [float(value) if value is not None else 0 for value in array1]
+        array2 = [float(value) if value is not None else 0 for value in array2]
 
-        # Create a mapping from unique categorical values to numerical identifiers
-        unique_values = set(attribute1_data + attribute2_data)
-        value_to_id = {value: id for id, value in enumerate(unique_values)}
+        # Calculate the Pearson correlation coefficient and p-value
+        # pearson_coefficient, p_value = pearsonr(array1, array2)
+        stdx = np.std(array1)
+        stdy = np.std(array2)
+        meanx = np.mean(array1)
+        meany = np.mean(array2)
 
-        # Map categorical values to numerical identifiers
-        attribute1_data = [value_to_id[value] for value in attribute1_data]
-        attribute2_data = [value_to_id[value] for value in attribute2_data]
-
-        # Create a contingency table
-        contingency_table = np.histogram2d(attribute1_data, attribute2_data, bins=len(unique_values))[0]
-
-        # Calculate the chi-square statistic, p-value, and expected frequencies
-        chi2, p, dof, expected = chi2_contingency(contingency_table)
+        sum_of_product = sum(x * y for x, y in zip(array1, array2))
+        cov =(sum_of_product//(len(array1)))-(meanx*meany)
+        pearson_coefficient = cov//(stdx*stdy)
 
         response_data = {
-            'chi2': chi2,
-            'p_value': p,
-            'degrees_of_freedom': dof,
-            'expected_frequencies': expected.tolist()
+            'pearson_coefficient': (pearson_coefficient),
         }
 
         return JsonResponse(response_data)
-    else:
-        return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+    return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
