@@ -1,15 +1,13 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
 
-const ScatterPlot = () => {
-  const xData = [1, 2, 3, 4, 5];
-  const yData = [3, 7, 1, 9, 5]; // Sample data
-
+const ScatterPlot = ({data}) => {
+  
   const trace = {
-    x: xData,
-    y: yData,
-    mode: 'markers',
-    type: 'scatter',
+    x: Array.from({ length: data?.length }, (_, i) => i + 1),
+      y: data,
+      mode: 'markers',
+      type: 'scatter',
   };
 
   return (

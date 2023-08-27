@@ -1,0 +1,3 @@
+v= 7;
+for x in range(v):
+    print(x);

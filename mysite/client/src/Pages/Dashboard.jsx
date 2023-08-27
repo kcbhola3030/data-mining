@@ -1,16 +1,75 @@
-import React from "react";
-import Plot from 'react-plotly.js';
- import QuantilePlot from "../Components/QuantilePlot";
+import React, { useEffect, useState } from "react";
+import Plot from "react-plotly.js";
+import QuantilePlot from "../Components/QuantilePlot";
 import QQPlot from "../Components/QQPlot";
 import ScatterPlot from "../Components/ScatterPlot";
 import BoxPlot from "../Components/BoxPlot";
 import Histogram from "../Components/Histogram";
+import ChiSquareCalculator from "../Components/ChiSuareCalculator";
 
-export const Dashboard = ({data}) => {
+export const Dashboard = ({ data }) => {
+  // const plotLayout = {
+  //   margin: { t: 20, r: 20, b: 50, l: 50 },
+  //   autosize: true,
+  //   xaxis: {
+  //     title: 'X-axis Label',
+  //   },
+  //   yaxis: {
+  //     title: 'Y-axis Label',
+  //   },
+  // };
+  const plotLayout = {};
 
+  const [mean, setMean] = useState(0);
+  const [median, setMedian] = useState(0);
+  const [mode, setMode] = useState(0);
+  const [variance, setVariance] = useState(0);
+  const [std, setStd] = useState(0);
+  const [mid, setMid] = useState(0);
+  const [mean_cal, setMeanCal] = useState(0);
+  const [median_cal, setMedianCal] = useState(0);
+  const [mode_cal, setModeCal] = useState(0);
+  const [variance_cal, setVarianceCal] = useState(0);
+  const [std_cal, setStdCal] = useState(0);
+  const [mid_cal, setMidCal] = useState(0);
+
+  const [col, setCol] = useState([]);
+
+  const [range, setRange] = useState(0);
+  const [irange, setIRange] = useState(0);
+  const [quartile, setQuartile] = useState([]);
+  const [five, setFive] = useState([]);
+
+  const [selectedKey, setSelectedKey] = useState(); // Initialize with the first key
+  const handleKeyChange = (event) => {
+    setSelectedKey(event.target.value);
+
+    const finalData = data.statistics[selectedKey];
+    setMean(finalData?.mean.toFixed(2));
+    setMedian(finalData?.median.toFixed(2));
+    setMode(finalData?.mode.toFixed(2));
+    setVariance(finalData?.variance.toFixed(2));
+    setStd(finalData?.std_deviation.toFixed(2));
+    setMid(finalData?.mid_range.toFixed(2));
+
+    setMeanCal(finalData?.mean_cal.toFixed(2));
+    setMedianCal(finalData?.median_cal.toFixed(2));
+    setModeCal(finalData?.mode_cal.toFixed(2));
+    setVarianceCal(finalData?.variance_cal.toFixed(2));
+    setStdCal(finalData?.std_deviation_cal.toFixed(2));
+    setMidCal(finalData?.midrange_cal.toFixed(2));
+    setCol(finalData?.converted_values);
+
+    setRange(finalData?.range.toFixed(2));
+    setIRange(finalData?.interquartile_range.toFixed(2));
+    setQuartile(finalData?.quartiles);
+    setFive(finalData?.five_number_summary);
+  };
 
   return (
     <>
+      {data ? <>
+      
       <div class="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default bg-gray-50 text-slate-500">
         <div class="absolute w-full bg-blue-500 dark:hidden min-h-75"></div>
 
@@ -23,18 +82,10 @@ export const Dashboard = ({data}) => {
                     <div class="flex flex-row -mx-3">
                       <div class="flex-none w-2/3 max-w-full px-3">
                         <div>
-                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">
-                            Today's Money
+                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-dark dark:opacity-60">
+                            Range
                           </p>
-                          <h5 class="mb-2 font-bold dark:text-white">
-                            $53,000
-                          </h5>
-                          <p class="mb-0 dark:text-white dark:opacity-60">
-                            <span class="text-sm font-bold leading-normal text-emerald-500">
-                              +55%
-                            </span>
-                            since yesterday
-                          </p>
+                          <h5 class="mb-2 font-bold dark:text-dark">{range}</h5>
                         </div>
                       </div>
                       <div class="px-3 text-right basis-1/3">
@@ -53,16 +104,12 @@ export const Dashboard = ({data}) => {
                     <div class="flex flex-row -mx-3">
                       <div class="flex-none w-2/3 max-w-full px-3">
                         <div>
-                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">
-                            Today's Users
+                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-dark dark:opacity-60">
+                            InterQuartile Range
                           </p>
-                          <h5 class="mb-2 font-bold dark:text-white">2,300</h5>
-                          <p class="mb-0 dark:text-white dark:opacity-60">
-                            <span class="text-sm font-bold leading-normal text-emerald-500">
-                              +3%
-                            </span>
-                            since last week
-                          </p>
+                          <h5 class="mb-2 font-bold dark:text-dark">
+                            {irange}
+                          </h5>
                         </div>
                       </div>
                       <div class="px-3 text-right basis-1/3">
@@ -81,16 +128,16 @@ export const Dashboard = ({data}) => {
                     <div class="flex flex-row -mx-3">
                       <div class="flex-none w-2/3 max-w-full px-3">
                         <div>
-                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">
-                            New Clients
+                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-dark dark:opacity-60">
+                            Quartiles
                           </p>
-                          <h5 class="mb-2 font-bold dark:text-white">+3,462</h5>
-                          <p class="mb-0 dark:text-white dark:opacity-60">
-                            <span class="text-sm font-bold leading-normal text-red-600">
-                              -2%
-                            </span>
-                            since last quarter
-                          </p>
+                          <h5 class="mb-2 font-bold dark:text-dark">
+                            {quartile?.map((value, index) => (
+                              <li key={index}>
+                                Quartile {index + 1}: {value}
+                              </li>
+                            ))}
+                          </h5>
                         </div>
                       </div>
                       <div class="px-3 text-right basis-1/3">
@@ -109,18 +156,24 @@ export const Dashboard = ({data}) => {
                     <div class="flex flex-row -mx-3">
                       <div class="flex-none w-2/3 max-w-full px-3">
                         <div>
-                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">
-                            Sales
+                          <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-dark dark:opacity-60">
+                            Five Number Summary
                           </p>
-                          <h5 class="mb-2 font-bold dark:text-white">
-                            $103,430
+                          <h5 class="mb-2 font-bold dark:text-dark">
+                            {five ? (
+                              <>
+                                <ul>
+                                  <li>Minimum Value: {five[0]}</li>
+                                  <li>First Quartile (Q1): {five[1]}</li>
+                                  <li>Median: {five[2]}</li>
+                                  <li>Third Quartile (Q3): {five[3]}</li>
+                                  <li>Maximum Value: {five[4]}</li>
+                                </ul>
+                              </>
+                            ) : (
+                              <></>
+                            )}
                           </h5>
-                          <p class="mb-0 dark:text-white dark:opacity-60">
-                            <span class="text-sm font-bold leading-normal text-emerald-500">
-                              +5%
-                            </span>
-                            than last month
-                          </p>
                         </div>
                       </div>
                       <div class="px-3 text-right basis-1/3">
@@ -139,7 +192,18 @@ export const Dashboard = ({data}) => {
                 <div class="relative flex flex-col min-w-0 break-words bg-white border-0 border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl dark:bg-gray-950 border-black-125 rounded-2xl bg-clip-border">
                   <div class="p-4 pb-0 mb-0 rounded-t-4">
                     <div class="flex justify-between">
-                      <h6 class="mb-2 dark:text-white">Sales by Country</h6>
+                      <h6 class="mb-2 dark:text-white">Stats by Column</h6>
+                      <select
+                        className="mb-2"
+                        value={selectedKey}
+                        onChange={handleKeyChange}
+                      >
+                        {Object.keys(data.statistics).map((key) => (
+                          <option key={key} value={key}>
+                            {key}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div class="overflow-x-auto">
@@ -163,7 +227,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $230,900
+                                {mean}
                               </h6>
                             </div>
                           </td>
@@ -173,7 +237,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                29.9%
+                                {mean_cal}
                               </h6>
                             </div>
                           </td>
@@ -196,7 +260,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $440,000
+                                {median}
                               </h6>
                             </div>
                           </td>
@@ -206,7 +270,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                40.22%
+                                {median_cal}
                               </h6>
                             </div>
                           </td>
@@ -229,7 +293,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $190,700
+                                {mode}
                               </h6>
                             </div>
                           </td>
@@ -239,7 +303,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                23.44%
+                                {mode_cal}
                               </h6>
                             </div>
                           </td>
@@ -262,7 +326,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $190,700
+                                {mid}
                               </h6>
                             </div>
                           </td>
@@ -272,7 +336,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                23.44%
+                                {mid_cal}
                               </h6>
                             </div>
                           </td>
@@ -295,7 +359,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $190,700
+                                {variance}
                               </h6>
                             </div>
                           </td>
@@ -305,7 +369,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                23.44%
+                                {variance_cal}
                               </h6>
                             </div>
                           </td>
@@ -328,7 +392,7 @@ export const Dashboard = ({data}) => {
                                 Value:
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                $143,960
+                                {std}
                               </h6>
                             </div>
                           </td>
@@ -338,7 +402,7 @@ export const Dashboard = ({data}) => {
                                 Value (in-built):
                               </p>
                               <h6 class="mb-0 text-sm leading-normal dark:text-white">
-                                32.14%
+                                {std_cal}
                               </h6>
                             </div>
                           </td>
@@ -351,111 +415,7 @@ export const Dashboard = ({data}) => {
                 {/* Left table ends here */}
               </div>
               <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
-                {/* <div class="border-black/12.5 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
-                  <div class="p-4 pb-0 rounded-t-4">
-                    <h6 class="mb-0 dark:text-white">Categories</h6>
-                  </div>
-                  <div class="flex-auto p-4">
-                    <ul class="flex flex-col pl-0 mb-0 rounded-lg">
-                      <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-t-lg rounded-xl text-inherit">
-                        <div class="flex items-center">
-                          <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
-                            <i class="text-white ni ni-mobile-button relative top-0.75 text-xxs"></i>
-                          </div>
-                          <div class="flex flex-col">
-                            <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">
-                              Devices
-                            </h6>
-                            <span class="text-xs leading-tight dark:text-white/80">
-                              250 in stock,{" "}
-                              <span class="font-semibold">346+ sold</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="flex">
-                          <button class="group ease-in leading-pro text-xs rounded-3.5xl p-1.2 h-6.5 w-6.5 mx-0 my-auto inline-block cursor-pointer border-0 bg-transparent text-center align-middle font-bold text-slate-700 shadow-none transition-all dark:text-white">
-                            <i
-                              class="ni ease-Value (in-built):  text-2xs group-hover:translate-x-1.25 ni-bold-right transition-all duration-200"
-                              aria-hidden="true"
-                            ></i>
-                          </button>
-                        </div>
-                      </li>
-                      <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-xl text-inherit">
-                        <div class="flex items-center">
-                          <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
-                            <i class="text-white ni ni-tag relative top-0.75 text-xxs"></i>
-                          </div>
-                          <div class="flex flex-col">
-                            <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">
-                              Tickets
-                            </h6>
-                            <span class="text-xs leading-tight dark:text-white/80">
-                              123 closed,{" "}
-                              <span class="font-semibold">15 open</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="flex">
-                          <button class="group ease-in leading-pro text-xs rounded-3.5xl p-1.2 h-6.5 w-6.5 mx-0 my-auto inline-block cursor-pointer border-0 bg-transparent text-center align-middle font-bold text-slate-700 shadow-none transition-all dark:text-white">
-                            <i
-                              class="ni ease-Value (in-built):  text-2xs group-hover:translate-x-1.25 ni-bold-right transition-all duration-200"
-                              aria-hidden="true"
-                            ></i>
-                          </button>
-                        </div>
-                      </li>
-                      <li class="relative flex justify-between py-2 pr-4 mb-2 border-0 rounded-b-lg rounded-xl text-inherit">
-                        <div class="flex items-center">
-                          <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
-                            <i class="text-white ni ni-box-2 relative top-0.75 text-xxs"></i>
-                          </div>
-                          <div class="flex flex-col">
-                            <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">
-                              Error logs
-                            </h6>
-                            <span class="text-xs leading-tight dark:text-white/80">
-                              1 is active,{" "}
-                              <span class="font-semibold">40 closed</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="flex">
-                          <button class="group ease-in leading-pro text-xs rounded-3.5xl p-1.2 h-6.5 w-6.5 mx-0 my-auto inline-block cursor-pointer border-0 bg-transparent text-center align-middle font-bold text-slate-700 shadow-none transition-all dark:text-white">
-                            <i
-                              class="ni ease-Value (in-built):  text-2xs group-hover:translate-x-1.25 ni-bold-right transition-all duration-200"
-                              aria-hidden="true"
-                            ></i>
-                          </button>
-                        </div>
-                      </li>
-                      <li class="relative flex justify-between py-2 pr-4 border-0 rounded-b-lg rounded-xl text-inherit">
-                        <div class="flex items-center">
-                          <div class="inline-block w-8 h-8 mr-4 text-center text-black bg-center shadow-sm fill-current stroke-none bg-gradient-to-tl from-zinc-800 to-zinc-700 dark:bg-gradient-to-tl dark:from-slate-750 dark:to-gray-850 rounded-xl">
-                            <i class="text-white ni ni-satisfied relative top-0.75 text-xxs"></i>
-                          </div>
-                          <div class="flex flex-col">
-                            <h6 class="mb-1 text-sm leading-normal text-slate-700 dark:text-white">
-                              Happy users
-                            </h6>
-                            <span class="text-xs leading-tight dark:text-white/80">
-                              <span class="font-semibold">+ 430 </span>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="flex">
-                          <button class="group ease-in leading-pro text-xs rounded-3.5xl p-1.2 h-6.5 w-6.5 mx-0 my-auto inline-block cursor-pointer border-0 bg-transparent text-center align-middle font-bold text-slate-700 shadow-none transition-all dark:text-white">
-                            <i
-                              class="ni ease-Value (in-built):  text-2xs group-hover:translate-x-1.25 ni-bold-right transition-all duration-200"
-                              aria-hidden="true"
-                            ></i>
-                          </button>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div> */}
-                <Histogram/>
+                <Histogram data={col} layout={plotLayout} />
               </div>
             </div>
 
@@ -466,8 +426,8 @@ export const Dashboard = ({data}) => {
                     <p class="mb-0 text-sm leading-normal dark:text-dark dark:opacity-60">
                       <i class="fa fa-arrow-up text-emerald-500"></i>
                     </p>
-                    <QuantilePlot/>
-                    <QQPlot/>
+                    <QuantilePlot data={col} layout={plotLayout} />
+                    <QQPlot data={col} layout={plotLayout} />
                   </div>
                   <div class="flex-auto p-4">
                     <div>
@@ -478,34 +438,28 @@ export const Dashboard = ({data}) => {
               </div>
 
               <div class="w-full max-w-full px-3 lg:w-5/12 lg:flex-none">
-               
-              <ScatterPlot/>
-                        <BoxPlot/>
+                <ScatterPlot data={col} layout={plotLayout} />
+                <BoxPlot data={col} layout={plotLayout} />
 
-                
-                    
-
-                    <div class="block text-start ml-12 left-0 bottom-0 absolute right-[15%] pt-5 pb-5 text-dark">
-                      <div class="inline-block w-8 h-8 mb-4 text-center text-black bg-white bg-center rounded-lg fill-current stroke-none">
-                        <i class="top-0.75 text-xxs relative text-slate-700 ni ni-trophy"></i>
-                      </div>
-
-                        
-                        
-                    </div>
-                  {/* </div> */}
-
-                  <button
-                    btn-next
-                    class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-right active:scale-110 top-6 right-4"
-                  ></button>
-                  <button
-                    btn-prev
-                    class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-left active:scale-110 top-6 right-16"
-                  ></button>
+                <div class="block text-start ml-12 left-0 bottom-0 absolute right-[15%] pt-5 pb-5 text-dark">
+                  <div class="inline-block w-8 h-8 mb-4 text-center text-black bg-white bg-center rounded-lg fill-current stroke-none">
+                    <i class="top-0.75 text-xxs relative text-slate-700 ni ni-trophy"></i>
+                  </div>
                 </div>
+
+                <button
+                  btn-next
+                  class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-right active:scale-110 top-6 right-4"
+                ></button>
+                <button
+                  btn-prev
+                  class="absolute z-10 w-10 h-10 p-2 text-lg text-white border-none opacity-50 cursor-pointer hover:opacity-100 far fa-chevron-left active:scale-110 top-6 right-16"
+                ></button>
               </div>
             </div>
+          </div>
+          {/* Add more elements here */}
+          <ChiSquareCalculator />
         </main>
         <div fixed-plugin>
           <a
@@ -516,6 +470,7 @@ export const Dashboard = ({data}) => {
           </a>
         </div>
       </div>
+       </> : <>No data loaded</>}
     </>
   );
 };
