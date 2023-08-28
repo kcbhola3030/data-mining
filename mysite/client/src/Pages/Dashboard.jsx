@@ -38,7 +38,6 @@ export const Dashboard = ({ data }) => {
   const [quartile, setQuartile] = useState([]);
   const [five, setFive] = useState([]);
 
-  const [options, setOptions] = useState([]);
 
   const [selectedKey, setSelectedKey] = useState(); // Initialize with the first key
   const handleKeyChange = (event) => {
@@ -66,10 +65,7 @@ export const Dashboard = ({ data }) => {
     setFive(finalData?.five_number_summary);
   };
 
-  useEffect(() => {
-    const extractedOptions = Object.keys(data.statistics);
-    setOptions(extractedOptions);
-  },[]);
+  
   return (
     <>
       {data ? <>

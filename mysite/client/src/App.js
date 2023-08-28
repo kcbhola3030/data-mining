@@ -5,6 +5,8 @@ import { Dashboard } from './Pages/Dashboard';
 import { Navbar } from './Components/Navbar';
 import { Chi } from './Pages/Chi';
 import Pearson from './Components/Pearson';
+import Normalization from './Pages/Normalization';
+import CSVUploadAndDisplay from './Components/CSVUploadAndDisplay';
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
           <Route exact path="/dashboard" element={<Dashboard />} />
           <Route exact path="/chi" element={<Chi />} />
           <Route exact path="/pearson" element={<Pearson />} />
+          <Route exact path="/normalization" element={<CSVUploadAndDisplay/>} />
         </Routes>
       </div>
     </>
