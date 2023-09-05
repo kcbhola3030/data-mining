@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+
 function Classifier() {
   const [selectedMethod, setSelectedMethod] = useState('info_gain');
   const [file, setFile] = useState(null);
@@ -40,32 +41,51 @@ function Classifier() {
   };
 
   return (
-    <div>
-      <h1>Classifier Page</h1>
-      <label>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-semibold mb-4">Classifier Page</h1>
+      <label className="block mb-2">
         Select Method:
-        <select value={selectedMethod} onChange={handleMethodChange}>
+        <select
+          value={selectedMethod}
+          onChange={handleMethodChange}
+          className="w-full border rounded py-2 px-3"
+        >
           <option value="info_gain">Information Gain</option>
           <option value="gain_ratio">Gain Ratio</option>
           <option value="gini">Gini Index</option>
         </select>
       </label>
       <br />
-      <label>
+      <label className="block mb-2">
         Upload Dataset:
-        <input type="file" accept=".csv" onChange={handleFileChange} />
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          className="w-full border rounded py-2 px-3"
+        />
       </label>
       <br />
-      <label>
+      <label className="block mb-2">
         Target Column:
-        <input type="text" value={targetColumn} onChange={handleTargetColumnChange} />
+        <input
+          type="text"
+          value={targetColumn}
+          onChange={handleTargetColumnChange}
+          className="w-full border rounded py-2 px-3"
+        />
       </label>
       <br />
-      <button onClick={handleSubmit}>Submit</button>
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+      >
+        Submit
+      </button>
       {results && (
-        <div>
-          <h2>Classification Results:</h2>
-          <pre>{JSON.stringify(results, null, 2)}</pre>
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold mb-2">Classification Results:</h2>
+          <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(results, null, 2)}</pre>
         </div>
       )}
     </div>

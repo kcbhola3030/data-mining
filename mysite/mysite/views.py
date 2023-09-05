@@ -230,6 +230,163 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
+# @csrf_exempt
+# def classify(request, method):
+#     if request.method == 'POST':
+#         try:
+#             # Load the uploaded dataset from the POST request
+#             uploaded_file = request.FILES['file']
+#             data = pd.read_csv(uploaded_file)
+            
+#             # Get the target column specified in the POST request
+#             target_column = request.POST.get('target_column', None)
+#             if not target_column:
+#                 return JsonResponse({"error": "Target column not specified."})
+
+#             # Split the data into features (X) and target labels (y)
+#             X = data.drop(target_column, axis=1)
+#             y = data[target_column]
+
+#             # Split the data into training and testing sets
+#             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+#             # Train a decision tree classifier using the specified method
+#             if method == 'info_gain':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#             elif method == 'gain_ratio':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#             elif method == 'gini':
+#                 clf = DecisionTreeClassifier(criterion='gini')
+#             else:
+#                 return JsonResponse({"error": "Invalid method specified."})
+
+#             clf.fit(X_train, y_train)
+            
+#             # Make predictions on the testing dataset
+#             predictions = clf.predict(X_test)
+#             confusion = confusion_matrix(y_test, predictions)
+
+#             # Calculate evaluation metrics
+#             accuracy = accuracy_score(y_test, predictions)
+#             precision = precision_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+#             recall = recall_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+#             f1 = f1_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+
+
+#             # accuracy = accuracy_score(y_test, predictions)
+#             misclassification_rate = 1 - accuracy
+#             sensitivity = recall_score(y_test, predictions)
+#             specificity = (confusion[0, 0]) / (confusion[0, 0] + confusion[0, 1])
+#             # precision = precision_score(y_test, predictions)
+#             # recall = sensitivity
+
+
+#             # Return the classification results as JSON response
+#             response_data = {
+#                 "accuracy": accuracy,
+#                 "precision": precision,
+#                 "recall": recall,
+#                 "f1_score": f1,
+#                 "misclassification_rate": misclassification_rate,
+#                 "specificity":specificity,
+#                 "sensitivity":sensitivity
+#             }
+
+#             return JsonResponse(response_data)
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)})
+#     else:
+#         return JsonResponse({"error": "Only POST requests are supported."})
+
+
+# classifier/views.py
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+
+# @csrf_exempt
+# def classify(request, method):
+#     if request.method == 'POST':
+#         try:
+#             # Load the uploaded dataset from the POST request
+#             uploaded_file = request.FILES['file']
+#             data = pd.read_csv(uploaded_file)
+            
+#             # Get the target column specified in the POST request
+#             target_column = request.POST.get('target_column', None)
+#             if not target_column:
+#                 return JsonResponse({"error": "Target column not specified."})
+
+#             # Split the data into features (X) and target labels (y)
+#             X = data.drop(target_column, axis=1)
+#             y = data[target_column]
+
+#             # Determine the positive label dynamically from the dataset
+#             unique_labels = y.unique()
+#             if len(unique_labels) != 2:
+#                 return JsonResponse({"error": "Dataset must have exactly two unique labels for binary classification."})
+            
+#             positive_label = unique_labels[1]  # Assume the second unique label is the positive class
+
+#             # Split the data into training and testing sets
+#             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#             # Train a decision tree classifier using the specified method
+#             if method == 'info_gain':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#             elif method == 'gain_ratio':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#             elif method == 'gini':
+#                 clf = DecisionTreeClassifier(criterion='gini')
+#             else:
+#                 return JsonResponse({"error": "Invalid method specified."})
+
+#             clf.fit(X_train, y_train)
+            
+#             # Make predictions on the testing dataset
+#             predictions = clf.predict(X_test)
+
+#             # Calculate the confusion matrix
+#             confusion = confusion_matrix(y_test, predictions)
+
+#             # Calculate evaluation metrics
+#             accuracy = accuracy_score(y_test, predictions)
+#             misclassification_rate = 1 - accuracy
+#             sensitivity = recall_score(y_test, predictions, pos_label=positive_label)
+#             specificity = recall_score(y_test, predictions, pos_label=unique_labels[0])
+#             precision = precision_score(y_test, predictions, pos_label=positive_label)
+#             recall = sensitivity
+
+#             # Return all the metrics as JSON response
+#             response_data = {
+#                 "accuracy": accuracy,
+#                 "misclassification_rate": misclassification_rate,
+#                 "sensitivity": sensitivity,
+#                 "specificity": specificity,
+#                 "precision": precision,
+#                 "recall": recall,
+#             }
+#             return JsonResponse(response_data)
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)})
+#     else:
+#         return JsonResponse({"error": "Only POST requests are supported."})
+
+
+# classifier/views.py
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+
 @csrf_exempt
 def classify(request, method):
     if request.method == 'POST':
@@ -250,7 +407,6 @@ def classify(request, method):
             # Split the data into training and testing sets
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-
             # Train a decision tree classifier using the specified method
             if method == 'info_gain':
                 clf = DecisionTreeClassifier(criterion='entropy')
@@ -265,20 +421,31 @@ def classify(request, method):
             
             # Make predictions on the testing dataset
             predictions = clf.predict(X_test)
-            # Calculate evaluation metrics
-            # Calculate evaluation metrics
+
+            # Calculate the confusion matrix
+            confusion = confusion_matrix(y_test, predictions)
+
+            # Calculate evaluation metrics for multi-class classification
             accuracy = accuracy_score(y_test, predictions)
-            precision = precision_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
-            recall = recall_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
-            f1 = f1_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+            misclassification_rate = 1 - accuracy
+            precision_micro = precision_score(y_test, predictions, average='micro')
+            recall_micro = recall_score(y_test, predictions, average='micro')
+            f1_micro = f1_score(y_test, predictions, average='micro')
 
+            precision_macro = precision_score(y_test, predictions, average='macro')
+            recall_macro = recall_score(y_test, predictions, average='macro')
+            f1_macro = f1_score(y_test, predictions, average='macro')
 
-            # Return the classification results as JSON response
+            # Return all the metrics as JSON response
             response_data = {
                 "accuracy": accuracy,
-                "precision": precision,
-                "recall": recall,
-                "f1_score": f1,
+                "misclassification_rate": misclassification_rate,
+                "precision_micro": precision_micro,
+                "recall_micro": recall_micro,
+                "f1_micro": f1_micro,
+                "precision_macro": precision_macro,
+                "recall_macro": recall_macro,
+                "f1_macro": f1_macro,
             }
             return JsonResponse(response_data)
         except Exception as e:
