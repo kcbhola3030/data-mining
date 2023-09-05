@@ -22,6 +22,10 @@
 
 #     return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
 
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+import pandas as pd
 import math
 import csv
 from statistics import mean, median, mode, variance, stdev
@@ -33,8 +37,7 @@ from django.shortcuts import render
 from scipy.stats import chi2_contingency
 from scipy.stats import pearsonr
 import numpy as np
-
-
+import json
 
 
 @csrf_exempt  # Exempt CSRF protection for demonstration purposes, consider adding proper protection
@@ -184,10 +187,6 @@ def calculate_standard_deviation(data):
         return None
     return math.sqrt(variance)
 
-import csv
-from scipy.stats import pearsonr
-from django.http import JsonResponse
-import json
 
 @csrf_exempt  # Exempt CSRF protection for demonstration purposes, consider adding proper protection
 def calculate_pearson(request):
@@ -208,7 +207,7 @@ def calculate_pearson(request):
         meany = np.mean(array2)
 
         sum_of_product = sum(x * y for x, y in zip(array1, array2))
-        cov =(sum_of_product//(len(array1)))-(meanx*meany)
+        cov = (sum_of_product//(len(array1)))-(meanx*meany)
         pearson_coefficient = cov//(stdx*stdy)
 
         response_data = {
@@ -218,3 +217,71 @@ def calculate_pearson(request):
         return JsonResponse(response_data)
 
     return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
+
+
+# assign 3
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+
+@csrf_exempt
+def classify(request, method):
+    if request.method == 'POST':
+        try:
+            # Load the uploaded dataset from the POST request
+            uploaded_file = request.FILES['file']
+            data = pd.read_csv(uploaded_file)
+            
+            # Get the target column specified in the POST request
+            target_column = request.POST.get('target_column', None)
+            if not target_column:
+                return JsonResponse({"error": "Target column not specified."})
+
+            # Split the data into features (X) and target labels (y)
+            X = data.drop(target_column, axis=1)
+            y = data[target_column]
+
+            # Split the data into training and testing sets
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+            # Train a decision tree classifier using the specified method
+            if method == 'info_gain':
+                clf = DecisionTreeClassifier(criterion='entropy')
+            elif method == 'gain_ratio':
+                clf = DecisionTreeClassifier(criterion='entropy')
+            elif method == 'gini':
+                clf = DecisionTreeClassifier(criterion='gini')
+            else:
+                return JsonResponse({"error": "Invalid method specified."})
+
+            clf.fit(X_train, y_train)
+            
+            # Make predictions on the testing dataset
+            predictions = clf.predict(X_test)
+            # Calculate evaluation metrics
+            # Calculate evaluation metrics
+            accuracy = accuracy_score(y_test, predictions)
+            precision = precision_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+            recall = recall_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+            f1 = f1_score(y_test, predictions, average='weighted')  # Specify 'weighted' for multi-class
+
+
+            # Return the classification results as JSON response
+            response_data = {
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1,
+            }
+            return JsonResponse(response_data)
+        except Exception as e:
+            return JsonResponse({"error": str(e)})
+    else:
+        return JsonResponse({"error": "Only POST requests are supported."})

@@ -23,5 +23,6 @@ urlpatterns = [
     path("admin", admin.site.urls),
     path('calculate', views.upload_csv, name='upload_csv' ), 
     path('pearson', views.calculate_pearson, name='pearson' ), 
+    path('classify/<str:method>/', views.classify, name='classify'),
 ]
 

@@ -7,6 +7,7 @@ import { Chi } from './Pages/Chi';
 import Pearson from './Components/Pearson';
 import Normalization from './Pages/Normalization';
 import CSVUploadAndDisplay from './Components/CSVUploadAndDisplay';
+import Classifier from './Pages/Classifier';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route exact path="/chi" element={<Chi />} />
           <Route exact path="/pearson" element={<Pearson />} />
           <Route exact path="/normalization" element={<CSVUploadAndDisplay/>} />
+          <Route exact path="/classifier" element={<Classifier/>} />
         </Routes>
       </div>
     </>
