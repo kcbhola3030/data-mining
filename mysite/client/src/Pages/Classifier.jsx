@@ -2,17 +2,22 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+// import decisionTreeImage from '../../../media/decision_tree.png';
+import tree from '../../src/decision_tree.png'
 
 
+// import a from '/Users/krishnacharanbhola/Desktop/MAMBA/sem7/DM/assign1/mysite/media/decision_tree.png'
 function Classifier() {
   const [selectedMethod, setSelectedMethod] = useState('info_gain');
   const [file, setFile] = useState(null);
   const [targetColumn, setTargetColumn] = useState('');
   const [results, setResults] = useState(null);
+  const [imageURL, setImageURL] = useState('');
 
   const handleMethodChange = (event) => {
     setSelectedMethod(event.target.value);
   };
+  
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -35,6 +40,9 @@ function Classifier() {
       });
 
       setResults(response.data);
+      
+      console.log(response)
+      setImageURL(response?.data.image_url);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -86,6 +94,12 @@ function Classifier() {
         <div className="mt-4">
           <h2 className="text-lg font-semibold mb-2">Classification Results:</h2>
           <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(results, null, 2)}</pre>
+        </div>
+      )}
+      {imageURL && (
+        <div>
+          <h2>Decision Tree:</h2>
+          <img src={tree} alt="Decision Tree" />
         </div>
       )}
     </div>

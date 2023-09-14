@@ -386,6 +386,119 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn import tree
+import matplotlib.pyplot as plt
+import os
+
+# @csrf_exempt
+# def classify(request, method):
+#     if request.method == 'POST':
+#         try:
+#             # Load the uploaded dataset from the POST request
+#             uploaded_file = request.FILES['file']
+#             data = pd.read_csv(uploaded_file)
+            
+#             # Get the target column specified in the POST request
+#             target_column = request.POST.get('target_column', None)
+#             if not target_column:
+#                 return JsonResponse({"error": "Target column not specified."})
+
+#             # Split the data into features (X) and target labels (y)
+#             X = data.drop(target_column, axis=1)
+#             y = data[target_column]
+
+#             # Split the data into training and testing sets
+#             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#             # Train a decision tree classifier using the specified method
+#             if method == 'info_gain':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#                 plt.figure(figsize=(12, 8)) 
+#                 tree.plot_tree(clf, feature_names=X.columns, class_names=y.unique(), filled=True)
+#                 plt.title("Decision Tree with Information Gain")
+#                 img_path = 'decision_tree.png'
+#                 plt.savefig(os.path.join('media', img_path))
+#             elif method == 'gain_ratio':
+#                 clf = DecisionTreeClassifier(criterion='entropy')
+#             elif method == 'gini':
+#                 clf = DecisionTreeClassifier(criterion='gini')
+#             else:
+#                 return JsonResponse({"error": "Invalid method specified."})
+
+#             clf.fit(X_train, y_train)
+            
+#             # Make predictions on the testing dataset
+#             predictions = clf.predict(X_test)
+
+
+
+#             # Calculate evaluation metrics for multi-class classification
+#             accuracy = accuracy_score(y_test, predictions)
+#             misclassification_rate = 1 - accuracy
+#             precision_micro = precision_score(y_test, predictions, average='micro')
+#             recall_micro = recall_score(y_test, predictions, average='micro')
+#             f1_micro = f1_score(y_test, predictions, average='micro')
+
+#             precision_macro = precision_score(y_test, predictions, average='macro')
+#             recall_macro = recall_score(y_test, predictions, average='macro')
+#             f1_macro = f1_score(y_test, predictions, average='macro')
+
+            
+#             confusion = confusion_matrix(y_test, predictions)
+
+#             # Access True Negatives, False Positives, False Negatives, and True Positives
+#             tn = confusion[0, 0]
+#             fp = confusion[0, 1]
+#             fn = confusion[1, 0]
+#             tp = confusion[1, 1]
+
+#             # Calculate Sensitivity (True Positive Rate)
+#             sensitivity = tp / (tp + fn)
+
+#             # Calculate Specificity (True Negative Rate)
+#             specificity = tn / (tn + fp)
+
+#             # Calculate Recognition Rate (Overall Accuracy)
+#             recognition_rate = (tp + tn) / (tp + tn + fp + fn)
+           
+
+#             # Include these metrics in the response_data dictionary
+#             response_data = {
+#                 "image_url": os.path.join('media', img_path),
+#                 "accuracy": accuracy,
+#                 "misclassification_rate": misclassification_rate,
+#                 "precision_micro": precision_micro,
+#                 "recall_micro": recall_micro,
+#                 "f1_micro": f1_micro,
+#                 "precision_macro": precision_macro,
+#                 "recall_macro": recall_macro,
+#                 "f1_macro": f1_macro,
+#                 "sensitivity": sensitivity,
+#                 "specificity": specificity,
+#                 "recognition_rate": recognition_rate,
+#             }
+
+#             return JsonResponse(response_data)
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)})
+#     else:
+#         return JsonResponse({"error": "Only POST requests are supported."})
+
+import os
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from django.http import JsonResponse
+from django.conf import settings
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import (
+    accuracy_score, confusion_matrix,
+    precision_score, recall_score, f1_score
+)
+from sklearn.model_selection import train_test_split
+from sklearn.tree import export_text
 
 @csrf_exempt
 def classify(request, method):
@@ -394,7 +507,7 @@ def classify(request, method):
             # Load the uploaded dataset from the POST request
             uploaded_file = request.FILES['file']
             data = pd.read_csv(uploaded_file)
-            
+
             # Get the target column specified in the POST request
             target_column = request.POST.get('target_column', None)
             if not target_column:
@@ -418,12 +531,17 @@ def classify(request, method):
                 return JsonResponse({"error": "Invalid method specified."})
 
             clf.fit(X_train, y_train)
-            
+
+            # Create a figure for the decision tree visualization
+            plt.figure(figsize=(12, 8))
+            plot_tree(clf, feature_names=X.columns.tolist(), class_names=y.unique().tolist(), filled=True)
+            plt.title("Decision Tree with Information Gain")
+            img_path = os.path.join('client/src', 'decision_tree.png')
+            # plt.savefig(img_path)
+            plt.savefig(img_path, bbox_inches='tight', pad_inches=0.1)
+
             # Make predictions on the testing dataset
             predictions = clf.predict(X_test)
-
-            # Calculate the confusion matrix
-            confusion = confusion_matrix(y_test, predictions)
 
             # Calculate evaluation metrics for multi-class classification
             accuracy = accuracy_score(y_test, predictions)
@@ -436,8 +554,29 @@ def classify(request, method):
             recall_macro = recall_score(y_test, predictions, average='macro')
             f1_macro = f1_score(y_test, predictions, average='macro')
 
-            # Return all the metrics as JSON response
+            confusion = confusion_matrix(y_test, predictions)
+
+            # Access True Negatives, False Positives, False Negatives, and True Positives
+            tn = confusion[0, 0]
+            fp = confusion[0, 1]
+            fn = confusion[1, 0]
+            tp = confusion[1, 1]
+
+            # Calculate Sensitivity (True Positive Rate)
+            sensitivity = tp / (tp + fn)
+
+            # Calculate Specificity (True Negative Rate)
+            specificity = tn / (tn + fp)
+
+            # Calculate Recognition Rate (Overall Accuracy)
+            recognition_rate = (tp + tn) / (tp + tn + fp + fn)
+
+            rules = export_text(clf, feature_names=X.columns.tolist())
+
+            # Include the image path and metrics in the response_data dictionary
             response_data = {
+                "image_url": img_path,
+                "rules": rules,
                 "accuracy": accuracy,
                 "misclassification_rate": misclassification_rate,
                 "precision_micro": precision_micro,
@@ -446,7 +585,11 @@ def classify(request, method):
                 "precision_macro": precision_macro,
                 "recall_macro": recall_macro,
                 "f1_macro": f1_macro,
+                "sensitivity": sensitivity,
+                "specificity": specificity,
+                "recognition_rate": recognition_rate,
             }
+
             return JsonResponse(response_data)
         except Exception as e:
             return JsonResponse({"error": str(e)})
