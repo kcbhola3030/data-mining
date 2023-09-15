@@ -26,7 +26,11 @@ urlpatterns = [
     path('calculate', views.upload_csv, name='upload_csv' ), 
     path('pearson', views.calculate_pearson, name='pearson' ), 
     path('classify/<str:method>/', views.classify, name='classify'),
+    path('regression/', views.regression_classifier, name='regression_classifier'),
+    path('naive_bayesian/', views.naive_bayesian_classifier, name='naive_bayesian_classifier'),
+    path('knn/', views.knn_classifier, name='knn_classifier'),
+    path('ann/', views.ann_classifier, name='ann_classifier'),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

@@ -5,9 +5,10 @@ import { Dashboard } from './Pages/Dashboard';
 import { Navbar } from './Components/Navbar';
 import { Chi } from './Pages/Chi';
 import Pearson from './Components/Pearson';
-import Normalization from './Pages/Normalization';
+// import Normalization from './Pages/Normalization';
 import CSVUploadAndDisplay from './Components/CSVUploadAndDisplay';
 import Classifier from './Pages/Classifier';
+import OtherClassifier from './Pages/OtherClassifier';
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
           <Route exact path="/pearson" element={<Pearson />} />
           <Route exact path="/normalization" element={<CSVUploadAndDisplay/>} />
           <Route exact path="/classifier" element={<Classifier/>} />
+          <Route exact path="/otherClassifier" element={<OtherClassifier/>} />
+          
         </Routes>
       </div>
     </>

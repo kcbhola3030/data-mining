@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 // import decisionTreeImage from '../../../media/decision_tree.png';
 import tree from '../../src/decision_tree.png'
+import DecisionTreeTable from '../Components/DecisionTreeTable';
 
 
 // import a from '/Users/krishnacharanbhola/Desktop/MAMBA/sem7/DM/assign1/mysite/media/decision_tree.png'
@@ -13,6 +14,7 @@ function Classifier() {
   const [targetColumn, setTargetColumn] = useState('');
   const [results, setResults] = useState(null);
   const [imageURL, setImageURL] = useState('');
+  const [rules, setRules] = useState('');
 
   const handleMethodChange = (event) => {
     setSelectedMethod(event.target.value);
@@ -41,7 +43,8 @@ function Classifier() {
 
       setResults(response.data);
       
-      console.log(response)
+      setRules(response.data.rules)
+      console.log(rules)
       setImageURL(response?.data.image_url);
     } catch (error) {
       console.error('Error:', error);
@@ -102,6 +105,7 @@ function Classifier() {
           <img src={tree} alt="Decision Tree" />
         </div>
       )}
+      <DecisionTreeTable text={rules}/>
     </div>
   );
 }
