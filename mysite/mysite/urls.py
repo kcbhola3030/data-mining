@@ -30,6 +30,8 @@ urlpatterns = [
     path('naive_bayesian/', views.naive_bayesian_classifier, name='naive_bayesian_classifier'),
     path('knn/', views.knn_classifier, name='knn_classifier'),
     path('ann/', views.ann_classifier, name='ann_classifier'),
+    path('dendrogram/', views.dendrogram_view, name='dendrogram'),
+
 ]
 
 if settings.DEBUG:

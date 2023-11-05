@@ -725,3 +725,83 @@ def ann_classifier(request):
         }
         
         return JsonResponse(response_data)
+
+import numpy as np
+from scipy.cluster.hierarchy import dendrogram, linkage
+import matplotlib.pyplot as plt
+from sklearn import datasets
+
+def generate_dendrogram(dataset_name, method):
+    if dataset_name == 'IRIS':
+        data = datasets.load_iris().data
+        title = "IRIS Dendrogram"
+    elif dataset_name == 'BreastCancer':
+        data = datasets.load_breast_cancer().data
+        title = "Breast Cancer Dendrogram"
+    else:
+        return None  # Invalid dataset choice
+
+    if method == 'agnes':
+        linkage_method = 'ward'  # Use 'ward' method for AGNES
+    elif method == 'diana':
+        linkage_method = 'single'  # Use 'single' method for DIANA
+    else:
+        return None  # Invalid clustering method
+
+    linkage_matrix = linkage(data, method=linkage_method)
+
+    plt.figure(figsize=(10, 6))
+    dendrogram(linkage_matrix)
+    plt.title(title)
+    plt.xlabel("Samples")
+    plt.ylabel("Distance")
+
+    # Save the dendrogram to a file and close the plot
+    img_path = os.path.join('client/src', 'dendrogram.png')
+            # plt.savefig(img_path)
+    plt.savefig(img_path)
+
+    # Print the dendrogram
+    plt.show()
+
+    # Read the saved image and return it
+    with open('dendrogram.png', 'rb') as image_file:
+        dendrogram_image = image_file.read()
+
+    return dendrogram_image
+
+
+
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+
+@csrf_exempt
+@require_POST
+def dendrogram_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        dataset_name = data.get('dataset')
+        clustering_method = data.get('clustering_method')
+        
+        if dataset_name == 'IRIS':
+            data = iris_data
+        elif dataset_name == 'BreastCancer':
+            data = breast_cancer_data
+        else:
+            return JsonResponse({'error': 'Invalid dataset name'})
+        
+    
+        
+    if dataset_name and clustering_method:
+        dendrogram_image = generate_dendrogram(dataset_name, clustering_method)
+
+        if dendrogram_image:
+            response = HttpResponse(dendrogram_image, content_type='image/png')
+            response['Content-Disposition'] = 'attachment; filename="dendrogram.png"'
+            return response
+        else:
+            return JsonResponse({'error': 'Invalid dataset or clustering method'}, status=400)
+    else:
+        return JsonResponse({'error': 'Missing dataset_name or clustering_method in POST data'}, status=400)

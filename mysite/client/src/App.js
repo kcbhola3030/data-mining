@@ -9,6 +9,7 @@ import Pearson from './Components/Pearson';
 import CSVUploadAndDisplay from './Components/CSVUploadAndDisplay';
 import Classifier from './Pages/Classifier';
 import OtherClassifier from './Pages/OtherClassifier';
+import DendrogramDisplay from './Components/DendrogramDisplay';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route exact path="/normalization" element={<CSVUploadAndDisplay/>} />
           <Route exact path="/classifier" element={<Classifier/>} />
           <Route exact path="/otherClassifier" element={<OtherClassifier/>} />
+          <Route exact path="/dendrogram" element={<DendrogramDisplay/>} />
           
         </Routes>
       </div>
