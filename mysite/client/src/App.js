@@ -10,6 +10,7 @@ import CSVUploadAndDisplay from './Components/CSVUploadAndDisplay';
 import Classifier from './Pages/Classifier';
 import OtherClassifier from './Pages/OtherClassifier';
 import DendrogramDisplay from './Components/DendrogramDisplay';
+import Kmeans from './Pages/Kmeans';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route exact path="/classifier" element={<Classifier/>} />
           <Route exact path="/otherClassifier" element={<OtherClassifier/>} />
           <Route exact path="/dendrogram" element={<DendrogramDisplay/>} />
+          <Route exact path="/kmeans" element={<Kmeans/>} />
           
         </Routes>
       </div>

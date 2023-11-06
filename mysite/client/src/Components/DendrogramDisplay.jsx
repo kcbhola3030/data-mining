@@ -3,7 +3,7 @@ import axios from "axios";
 import dendrogram from '../../src/dendrogram.png'
 
 function DendrogramDisplay() {
-
+  const [imageUrl, setImageUrl] = useState('');
   const [dataset, setDataset] = useState('');
   const [method, setMethod] = useState('');
 
@@ -25,7 +25,9 @@ function DendrogramDisplay() {
   clustering_method:method
  })
   .then((response) => {
-      console.log(method)
+      
+
+    setImageUrl(response.data)
     })
   .catch((error) => {
     console.error("Error fetching dendrogram image: ", error);
@@ -106,7 +108,7 @@ function DendrogramDisplay() {
       <br />
 
       <label className="block mb-2">
-        Select Method:
+        Select Dataset:
         <select
           value={dataset}
           onChange={handleDatasetChange}
@@ -125,7 +127,7 @@ function DendrogramDisplay() {
         Submit
       </button>
     
-      {dendrogram && (
+      {imageUrl && (
         <div>
           <h2>Dendrogram:</h2>
           <img src={dendrogram} alt="Decision Tree" />
