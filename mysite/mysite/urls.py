@@ -31,6 +31,18 @@ urlpatterns = [
     path('knn/', views.knn_classifier, name='knn_classifier'),
     path('ann/', views.ann_classifier, name='ann_classifier'),
     path('dendrogram/', views.dendrogram_view, name='dendrogram'),
+    path('pagerank/', views.get_page_rank, name='calculate_page_rank'),
+    path('hitscore/', views.get_hits_scores, name='calculate_hits_scores'),
+    path('crawl/', views.crawl_urls, name='crawl_urls'),
+    path('kmeans/', views.kmeans_view, name='kmeans'),
+    path('kmedoids/', views.kmedoids_view, name='kmedoids'),
+    # write path for dbscan_view and birch_view
+    path('birch/', views.birch_view, name='birch'),
+    path('dbscan/', views.dbscan_view, name='dbscan'),
+    # for clustering
+    path('clustering/',views.clustering_view,name='clustering'),
+    path('run_association_rules/', views.run_association_rules, name='run_association_rules'),
+    # path('run_association_rules_matrics/', views.run_association_rules_matrics, name='run_association_rules'),
 
 ]
 

@@ -805,3 +805,894 @@ def dendrogram_view(request):
             return JsonResponse({'error': 'Invalid dataset or clustering method'}, status=400)
     else:
         return JsonResponse({'error': 'Missing dataset_name or clustering_method in POST data'}, status=400)
+
+
+
+
+# views.py in your Django app
+
+from django.http import JsonResponse
+import networkx as nx
+import pandas as pd
+
+# Function to calculate PageRank and return the top 10 pages with their ranks
+def calculate_pagerank(file_path):
+    G = nx.read_edgelist(file_path, create_using=nx.DiGraph(), nodetype=int)
+    pagerank = nx.pagerank(G)
+    top_pages = sorted(pagerank, key=pagerank.get, reverse=True)[:10]
+    results = pd.DataFrame(columns=['Page', 'PageRank'])
+    results['Page'] = top_pages
+    results['PageRank'] = [pagerank[page] for page in top_pages]
+    return results.to_dict(orient='records')
+
+# Django view function
+def get_page_rank(request):
+    # Define the file path (replace this with your file path)
+    file_path = '/Users/krishnacharan/Desktop/kc/acads/sem7/dm/data-mining/mysite/mysite/web-Stanford.txt'
+
+    # Calculate PageRank and get the top 10 pages with their ranks
+    top_pages_with_ranks = calculate_pagerank(file_path)
+
+    # Return the top pages with their ranks in JSON format
+    return JsonResponse({'top_pages': top_pages_with_ranks})
+
+
+# views.py in your Django app
+
+from django.http import JsonResponse
+import networkx as nx
+import pandas as pd
+
+# Function to calculate HITS scores and return the top 10 authoritative and hub pages
+def calculate_hits(file_path):
+    G = nx.read_edgelist(file_path, create_using=nx.DiGraph(), nodetype=int)
+    hits_scores = nx.hits(G)
+    authority_scores = hits_scores[1]
+    hub_scores = hits_scores[0]
+    top_authority_pages = sorted(authority_scores, key=authority_scores.get, reverse=True)[:10]
+    top_hub_pages = sorted(hub_scores, key=hub_scores.get, reverse=True)[:10]
+    authority_results = pd.DataFrame(columns=['Page', 'AuthorityScore'])
+    authority_results['Page'] = top_authority_pages
+    authority_results['AuthorityScore'] = [authority_scores[page] for page in top_authority_pages]
+    hub_results = pd.DataFrame(columns=['Page', 'HubScore'])
+    hub_results['Page'] = top_hub_pages
+    hub_results['HubScore'] = [hub_scores[page] for page in top_hub_pages]
+    return authority_results.to_dict(orient='records'), hub_results.to_dict(orient='records')
+
+# Django view function
+def get_hits_scores(request):
+    file_path = '/Users/krishnacharan/Desktop/kc/acads/sem7/dm/data-mining/mysite/mysite/web-Stanford.txt'
+    authority_pages, hub_pages = calculate_hits(file_path)
+    return JsonResponse({'top_authority_pages': authority_pages, 'top_hub_pages': hub_pages})
+
+import requests
+from bs4 import BeautifulSoup
+from collections import deque
+
+def dfs_crawler(seed_url, max_pages=10):
+    visited = set()
+    stack = [(seed_url, 0)]
+    result = []
+
+    while stack and len(visited) < max_pages:
+        url, depth = stack.pop()
+
+        if url in visited:
+            continue
+
+        visited.add(url)
+        result.append(url)
+
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            for link in soup.find_all('a', href=True):
+                next_url = link['href']
+                if next_url.startswith('http') and next_url not in visited:
+                    stack.append((next_url, depth + 1))
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    return result
+
+
+def bfs_crawler(seed_url, max_pages=10):
+    visited = set()
+    queue = deque([(seed_url, 0)])
+    result = []
+    
+
+    while queue and len(visited) < max_pages:
+        url, depth = queue.popleft()
+        
+        if url in visited:
+            continue
+        
+        visited.add(url)
+        result.append(url)
+        
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            for link in soup.find_all('a', href=True):
+                next_url = link['href']
+                if next_url.startswith('http') and next_url not in visited:
+                    queue.append((next_url, depth + 1))
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    return result
+
+
+from django.http import JsonResponse
+
+@csrf_exempt
+def crawl_urls(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        url = data.get('url')  # Get the URL from the form input
+        # Call BFS and DFS crawlers
+        bfs_result = bfs_crawler(url)
+        dfs_result = dfs_crawler(url)
+
+        # Prepare the response data
+        response_data = {
+            'bfs_result': bfs_result,
+            'dfs_result': dfs_result
+        }
+
+        return JsonResponse(response_data)
+
+
+#assignment 6
+# ==============kmeans==================
+from io import BytesIO  # Add this import statement
+
+import os
+
+def generate_kmeans(dataset_name, k_value):
+    if dataset_name == 'IRIS':
+        data = datasets.load_iris()
+        title = "IRIS K-Means Clustering"
+    elif dataset_name == 'BreastCancer':
+        data = datasets.load_breast_cancer()
+        title = "Breast Cancer K-Means Clustering"
+    else:
+        return None  # Invalid dataset choice
+
+    if k_value:
+        kmeans = KMeans(n_clusters=k_value, random_state=42)
+        kmeans.fit(data.data)
+        y_pred = kmeans.predict(data.data)
+        plt.figure(figsize=(10, 6))
+        plt.scatter(data.data[:, 0], data.data[:, 1], c=y_pred)
+        plt.title(title)
+        plt.xlabel("Feature 1")
+        plt.ylabel("Feature 2")
+
+        # Specify the directory where you want to save the image
+        save_directory = 'client/src'
+
+        # Ensure the directory exists
+        os.makedirs(save_directory, exist_ok=True)
+
+        # Construct the full path for the saved image with k_value in the filename
+        img_filename = f'kmeansOf_{dataset_name}.png'
+        img_path = os.path.join(save_directory, img_filename)
+
+        # Save the image to the specified directory
+        plt.savefig(img_path)
+        plt.close()
+
+        # Read the saved image and return it
+        with open(img_path, 'rb') as image_file:
+            kmeans_image = image_file.read()
+
+        return kmeans_image
+    else:
+        return None  # Invalid k-value
+
+
+@csrf_exempt
+@require_POST
+def kmeans_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        print("Received data:", data)  # Print the received data for debugging
+        dataset_name = data.get('dataset')
+        k_value_str = data.get('k_value')
+        
+        print("dataset_name:", dataset_name)
+        print("k_value_str:", k_value_str)
+        if not k_value_str:
+            return JsonResponse({'error': 'k_value is missing or empty'}, status=400)
+
+        try:
+            k_value = int(k_value_str)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid k_value. Must be an integer.'}, status=400)
+
+        if dataset_name == 'IRIS':
+            data = iris_data
+        elif dataset_name == 'BreastCancer':
+            data = breast_cancer_data
+        else:
+            return JsonResponse({'error': 'Invalid dataset name'})
+    
+        if dataset_name and k_value:
+            kmeans_image = generate_kmeans(dataset_name, k_value)
+
+            if kmeans_image:
+                response = HttpResponse(kmeans_image, content_type='image/png')
+                response['Content-Disposition'] = 'attachment; filename="kmeans.png"'
+                return response
+            else:
+                return JsonResponse({'error': 'Invalid dataset or k-value'}, status=400)
+        else:
+            return JsonResponse({'error': 'Missing dataset_name or k_value in POST data'}, status=400)
+
+# ================k-medoids================
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+from sklearn_extra.cluster import KMedoids
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# Sample data (Replace this with your actual dataset)
+iris_data = np.random.rand(150, 4)  # Example for Iris dataset
+breast_cancer_data = np.random.rand(569, 30)  # Example for Breast Cancer dataset
+
+# Directory to save the generated images
+save_directory = 'client/src'
+
+# Ensure the directory exists
+os.makedirs(save_directory, exist_ok=True)
+
+# def generate_kmedoids(dataset_name, k_value):
+#     if dataset_name == 'IRIS':
+#         data = iris_data
+#         title = "IRIS k-Medoids Clustering"
+#     elif dataset_name == 'BreastCancer':
+#         data = breast_cancer_data
+#         title = "BREAST CANCER k-Medoids Clustering"
+#     else:
+#         return None  # Invalid dataset choice
+
+#     if k_value:
+#         # initial_medoids = np.random.choice(len(data), k_value, replace=False)
+#         kmedoids_instance = KMedoids(n_clusters=k_value, random_state=0, init='k-medoids++')
+#         kmedoids_instance.fit(data)
+#         labels = kmedoids_instance.labels_
+#         medoids = kmedoids_instance.medoid_indices_
+
+#     # Plotting the clusters and medoids
+#     plt.figure(figsize=(8, 6))
+#     for cluster_index in range(3):
+#         cluster_points = data[labels == cluster_index]
+#         plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f'Cluster {cluster_index + 1}')
+#         plt.scatter(data[medoids, 0], data[medoids, 1], c='red', marker='x', s=200, label='Medoids')
+#         plt.title(title)
+#         plt.xlabel("Feature 1")
+#         plt.ylabel("Feature 2")
+#         plt.legend()
+
+#         # Construct the full path for the saved image with k_value in the filename
+#         img_filename = f'kmedoidsOf_{dataset_name}.png'
+#         img_path = os.path.join(save_directory, img_filename)
+
+#         # Save the image to the specified directory
+#         plt.savefig(img_path)
+#         plt.close()
+
+#         # Read the saved image and return it
+#         with open(img_path, 'rb') as image_file:
+#             kmedoids_image = image_file.read()
+
+#         return kmedoids_image
+#     else:
+#         return None  # Invalid k-value
+
+
+import numpy as np
+import os
+from sklearn_extra.cluster import KMedoids
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris, load_breast_cancer
+
+def generate_kmedoids(dataset_name, k_value):
+    if dataset_name == 'IRIS':
+        data = load_iris().data[:, :2]  # Considering only the first two features for visualization purposes
+        title = "IRIS k-Medoids Clustering"
+    elif dataset_name == 'BreastCancer':
+        data = load_breast_cancer().data[:, :2]  # Considering only the first two features for visualization purposes
+        title = "BREAST CANCER k-Medoids Clustering"
+    else:
+        return None  # Invalid dataset choice
+
+    if k_value:
+        kmedoids_instance = KMedoids(n_clusters=k_value, random_state=0, init='k-medoids++')
+        kmedoids_instance.fit(data)
+        labels = kmedoids_instance.labels_
+        medoids = kmedoids_instance.medoid_indices_
+
+        # Plotting the clusters and medoids
+        plt.figure(figsize=(8, 6))
+        for cluster_index in range(k_value):
+            cluster_points = data[labels == cluster_index]
+            plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f'Cluster {cluster_index + 1}')
+        plt.scatter(data[medoids, 0], data[medoids, 1], c='red', marker='x', s=200, label='Medoids')
+        plt.title(title)
+        plt.xlabel("Feature 1")
+        plt.ylabel("Feature 2")
+        plt.legend()
+
+        # Construct the full path for the saved image with k_value in the filename
+        save_directory = 'client/src'
+        img_filename = f'kmedoidsOf_{dataset_name}.png'
+        img_path = os.path.join(save_directory, img_filename)
+
+        # Save the image to the specified directory
+        plt.savefig(img_path)
+        plt.close()
+
+        # Read the saved image and return it
+        with open(img_path, 'rb') as image_file:
+            kmedoids_image = image_file.read()
+
+        return kmedoids_image
+    else:
+        return None  # Invalid k-value
+
+@csrf_exempt
+@require_POST
+def kmedoids_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        print("Received data:", data)  # Print the received data for debugging
+        dataset_name = data.get('dataset')
+        k_value_str = data.get('k_value')
+
+        print("dataset_name:", dataset_name)
+        print("k_value_str:", k_value_str)
+        if not k_value_str:
+            return JsonResponse({'error': 'k_value is missing or empty'}, status=400)
+
+        try:
+            k_value = int(k_value_str)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid k_value. Must be an integer.'}, status=400)
+
+        if dataset_name == 'IRIS':
+            data = iris_data
+        elif dataset_name == 'BreastCancer':
+            data = breast_cancer_data
+        else:
+            return JsonResponse({'error': 'Invalid dataset name'})
+
+        if dataset_name and k_value:
+            kmedoids_image = generate_kmedoids(dataset_name, k_value)
+
+            if kmedoids_image:
+                response = HttpResponse(kmedoids_image, content_type='image/png')
+                response['Content-Disposition'] = 'attachment; filename="kmedoids.png"'
+                return response
+            else:
+                return JsonResponse({'error': 'Invalid dataset or k-value'}, status=400)
+        else:
+            return JsonResponse({'error': 'Missing dataset_name or k_value in POST data'}, status=400)
+
+
+# ==============
+# Import necessary libraries
+from django.http import JsonResponse, HttpResponse
+from sklearn.cluster import Birch, DBSCAN
+from sklearn.datasets import load_iris, load_breast_cancer
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import os
+import json
+from io import BytesIO
+
+# BIRCH Clustering
+def generate_birch(dataset_name):
+    if dataset_name == 'IRIS':
+        data = load_iris()
+        title = "IRIS BIRCH Clustering"
+    elif dataset_name == 'BreastCancer':
+        data = load_breast_cancer()
+        title = "Breast Cancer BIRCH Clustering"
+    else:
+        return None  # Invalid dataset choice
+
+    birch = Birch(threshold=0.5, branching_factor=50)
+    birch.fit(data.data)
+    labels = birch.predict(data.data)
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(data.data[:, 0], data.data[:, 1], c=labels)
+    plt.title(title)
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+
+    save_directory = 'client/src'
+    os.makedirs(save_directory, exist_ok=True)
+    img_filename = f'birchOf_{dataset_name}.png'
+    img_path = os.path.join(save_directory, img_filename)
+
+    plt.savefig(img_path)
+    plt.close()
+
+    with open(img_path, 'rb') as image_file:
+        birch_image = image_file.read()
+
+    return birch_image
+
+# DBSCAN Clustering
+def generate_dbscan(dataset_name):
+    if dataset_name == 'IRIS':
+        data = load_iris()
+        title = "IRIS DBSCAN Clustering"
+    elif dataset_name == 'BreastCancer':
+        data = load_breast_cancer()
+        title = "Breast Cancer DBSCAN Clustering"
+    else:
+        return None  # Invalid dataset choice
+
+    # Normalize the data
+    scaler = StandardScaler()
+    data_normalized = scaler.fit_transform(data.data)
+
+    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    labels = dbscan.fit_predict(data_normalized)
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(data.data[:, 0], data.data[:, 1], c=labels)
+    plt.title(title)
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+
+    save_directory = 'client/src'
+    os.makedirs(save_directory, exist_ok=True)
+    img_filename = f'dbscanOf_{dataset_name}.png'
+    img_path = os.path.join(save_directory, img_filename)
+
+    plt.savefig(img_path)
+    plt.close()
+
+    with open(img_path, 'rb') as image_file:
+        dbscan_image = image_file.read()
+
+    return dbscan_image
+
+# View for BIRCH clustering
+@csrf_exempt
+@require_POST
+def birch_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        dataset_name = data.get('dataset')
+
+        if dataset_name == 'IRIS':
+            data = iris_data
+        elif dataset_name == 'BreastCancer':
+            data = breast_cancer_data
+        else:
+            return JsonResponse({'error': 'Invalid dataset name'})
+
+        birch_image = generate_birch(dataset_name)
+
+        if birch_image:
+            response = HttpResponse(birch_image, content_type='image/png')
+            response['Content-Disposition'] = f'attachment; filename="birchOf_{dataset_name}.png"'
+            return response
+        else:
+            return JsonResponse({'error': 'Invalid dataset for BIRCH clustering'}, status=400)
+
+# View for DBSCAN clustering
+@csrf_exempt
+@require_POST
+def dbscan_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        dataset_name = data.get('dataset')
+
+        if dataset_name == 'IRIS':
+            data = iris_data
+        elif dataset_name == 'BreastCancer':
+            data = breast_cancer_data
+        else:
+            return JsonResponse({'error': 'Invalid dataset name'})
+
+        dbscan_image = generate_dbscan(dataset_name)
+
+        if dbscan_image:
+            response = HttpResponse(dbscan_image, content_type='image/png')
+            response['Content-Disposition'] = f'attachment; filename="dbscanOf_{dataset_name}.png"'
+            return response
+        else:
+            return JsonResponse({'error': 'Invalid dataset for DBSCAN clustering'}, status=400)
+
+
+# ========
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from sklearn import datasets
+from sklearn.cluster import AgglomerativeClustering, KMeans, Birch
+from sklearn.metrics import adjusted_rand_score, silhouette_score
+from scipy.cluster.hierarchy import linkage, dendrogram
+from pyclustering.cluster.kmedoids import kmedoids
+import matplotlib.pyplot as plt
+import io
+import base64
+import json
+import numpy as np
+import pandas as pd
+
+results_df = pd.DataFrame(columns=['Algorithm', 'ARI Score', 'Silhouette Score'])
+
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.datasets import load_iris, load_breast_cancer
+
+# Directory to save the generated images
+save_directory = 'client/src'
+os.makedirs(save_directory, exist_ok=True)
+
+def hierarchical_clustering(dataset_name, algorithm_name):
+    if dataset_name == 'iris':
+        dataset = datasets.load_iris()
+        title = "IRIS "
+    elif dataset_name == 'breast_cancer':
+        dataset = datasets.load_breast_cancer()
+        title = "Breast Cancer "
+    else:
+        return None  # Invalid dataset choice
+    if algorithm_name == 'agnes':
+        linkage_matrix = linkage(dataset.data, method='single')  # 'single' linkage method for AGNES
+        title += "AGNES Hierarchical Clustering"
+    elif algorithm_name == 'diana':
+        linkage_matrix = linkage(dataset.data, method='complete')  # 'complete' linkage method for DIANA
+        title += "DIANA Hierarchical Clustering"
+    else:
+        return None  # Invalid algorithm choice
+
+    plt.figure(figsize=(10, 6))
+    dendrogram(linkage_matrix)
+    plt.title(title)
+    plt.xlabel('Sample Index')
+    plt.ylabel('Distance')
+    
+    # Save the dendrogram plot as an image
+    img_filename = f'clustering_result.png'
+    img_path = os.path.join(save_directory, img_filename)
+    plt.savefig(img_path)
+    plt.close()
+
+    return img_path  # Return the path to the generated image
+
+
+@csrf_exempt
+@require_POST
+def clustering_view(request):
+    global results_df
+    data = json.loads(request.body.decode('utf-8'))
+    dataset_name = data.get('dataset')
+    algorithm_name = data.get('algorithm')
+    k_value = data.get('k_value')
+
+    if dataset_name == 'iris':
+        dataset = datasets.load_iris()
+    elif dataset_name == 'breast_cancer':
+        dataset = datasets.load_breast_cancer()
+    else:
+        return JsonResponse({'error': 'Invalid dataset name'})
+
+    data_to_cluster = dataset.data
+    true_labels = dataset.target
+
+    print(dataset_name,algorithm_name)
+    if algorithm_name == 'agnes' or algorithm_name == 'diana':
+        img_path = hierarchical_clustering(dataset_name,algorithm_name)
+        
+
+    # Convert the plot to base64 for sending to the frontend
+        image_base64 = plot_to_base64(img_path)
+        return JsonResponse({'image': image_base64})
+
+    elif algorithm_name == 'kmeans':
+        # k-Means Clustering
+        kmeans = KMeans(n_clusters=int(k_value), random_state=42)
+        clusters = kmeans.fit_predict(data_to_cluster)
+
+        ari_score, sil_score = evaluate_clusters(data_to_cluster, true_labels, clusters)
+        results_df = update_results(results_df, algorithm_name, ari_score, sil_score)
+        return JsonResponse({'ARI Score': ari_score, 'Silhouette Score': sil_score})
+
+    elif algorithm_name == 'kmedoids':
+        # k-Medoids Clustering (PAM)
+        if not k_value:
+            return JsonResponse({'error': 'k_value is missing or empty'}, status=400)
+
+        try:
+            k_value = int(k_value)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid k_value. Must be an integer.'}, status=400)
+
+        # Use pyclustering's kmedoids for K-Medoids
+        kmedoids_instance = kmedoids(data_to_cluster, initial_index_medoids=np.random.randint(0, len(data_to_cluster), int(k_value)))
+        clusters = kmedoids_instance.process().get_clusters()
+
+        ari_score, sil_score = evaluate_clusters(data_to_cluster, true_labels, clusters)
+        results_df = update_results(results_df, algorithm_name, ari_score, sil_score)
+        return JsonResponse({'ARI Score': ari_score, 'Silhouette Score': sil_score})
+    
+    elif algorithm_name == 'dbscan':
+        # DBSCAN Clustering
+        if not k_value:
+            return JsonResponse({'error': 'k_value is missing or empty'}, status=400)
+
+        try:
+            eps = float(k_value)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid k_value. Must be a float.'}, status=400)
+
+        dbscan = DBSCAN(eps=eps)
+        clusters = dbscan.fit_predict(data_to_cluster)
+
+        ari_score, sil_score = evaluate_clusters(data_to_cluster, true_labels, clusters)
+        results_df = update_results(results_df, algorithm_name, ari_score, sil_score)
+        return JsonResponse({'ARI Score': ari_score, 'Silhouette Score': sil_score})
+
+
+
+    elif algorithm_name == 'birch':
+        # BIRCH Clustering
+        if not k_value:
+            return JsonResponse({'error': 'k_value is missing or empty'}, status=400)
+
+        try:
+            k_value = int(k_value)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid k_value. Must be an integer.'}, status=400)
+
+        birch = Birch(n_clusters=k_value)
+        clusters = birch.fit_predict(data_to_cluster)
+
+        ari_score, sil_score = evaluate_clusters(data_to_cluster, true_labels, clusters)
+        results_df = update_results(results_df, algorithm_name, ari_score, sil_score)
+        return JsonResponse({'ARI Score': ari_score, 'Silhouette Score': sil_score})
+
+    # Add other clustering algorithms as needed
+
+    return JsonResponse({'error': 'Invalid algorithm name'})
+
+def evaluate_clusters(data_to_cluster, true_labels, predicted_labels):
+    unique_labels = np.unique(predicted_labels)
+
+    # Check if there is only one label (e.g., all points assigned to the same cluster)
+    if len(unique_labels) < 2:
+        return 0.0, 0.0  # Return default scores for this case
+
+    ari_score = adjusted_rand_score(true_labels, predicted_labels)
+    sil_score = silhouette_score(data_to_cluster, predicted_labels)
+    return ari_score, sil_score
+
+
+def plot_to_base64(plot_path):
+    with open(plot_path, "rb") as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+    return base64_image
+
+def update_results(results_df, algorithm_name, ari_score, sil_score):
+    new_row = pd.DataFrame({
+        'Algorithm': [algorithm_name],
+        'ARI Score': [ari_score],
+        'Silhouette Score': [sil_score]
+    })
+    results_df = pd.concat([results_df, new_row], ignore_index=True)
+    return results_df
+
+#assign7
+# ================ass7===============
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from ucimlrepo import fetch_ucirepo
+from mlxtend.frequent_patterns import apriori, association_rules
+import pandas as pd
+import json
+
+
+@csrf_exempt
+def run_association_rules(request):
+    if request.method == 'POST':
+        try:
+            print('Received POST request')
+            
+            # Load dataset
+            dataset_id = 105  # Use the appropriate dataset ID
+            dataset = fetch_ucirepo(id=dataset_id)
+            X = dataset.data.features
+            y = dataset.data.targets
+            data = pd.concat([X, pd.DataFrame(y, columns=['Class'])], axis=1)
+
+            # Convert categorical columns to boolean using one-hot encoding
+            data = pd.get_dummies(data, drop_first=True)
+
+            # Get parameters from the request
+            data_json = json.loads(request.body.decode('utf-8'))
+            support_values = data_json.get('support_values', [])
+            confidence_values = data_json.get('confidence_values', [])
+            
+            results = []
+
+            for support in support_values:
+                for confidence in confidence_values:
+                    support = float(support)
+                    confidence = float(confidence)
+
+                    # Find frequent itemsets
+                    frequent_itemsets = apriori(data, min_support=support, use_colnames=True)
+                    frequent_itemsets_list = frequent_itemsets['itemsets'].apply(list).tolist()
+                    # print("frequent_itemsets_list:", frequent_itemsets_list)
+
+                    # Generate association rules
+                    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=confidence)
+                    rules_list = rules.to_dict(orient='records')
+                    # print("rules_list:", rules.shape[0])
+
+                    # Prepare results
+                    
+
+                    # for rule in rules_list:
+                    #     lift_val = calculate_lift(data, rule)
+                    #     chi_square_val = calculate_chi_square(data, rule)
+                    #     all_confidence_val = calculate_all_confidence(data, rule)
+                    #     max_confidence_val = calculate_max_confidence(data, rule)
+                    #     kulczynski_val = calculate_kulczynski(data, rule)
+                    #     cosine_val = calculate_cosine(data, rule)
+
+                    # rule.update({
+                    #     'lift': lift_val,
+                    #     'chi_square': chi_square_val,
+                    #     'all_confidence': all_confidence_val,
+                    #     'max_confidence': max_confidence_val,
+                    #     'kulczynski': kulczynski_val,
+                    #     'cosine': cosine_val
+                    # })
+                    
+                    
+                    result = {
+                        'support': support,
+                        'confidence': confidence,
+                        'frequent_itemsets': frequent_itemsets_list,
+                        'total_rules': len(rules),
+                        'rules': rules_list[0],
+                    #     'data': {
+                    #     'lift': lift_val,
+                    #     'chi_square': chi_square_val,
+                    #     'all_confidence': all_confidence_val,
+                    #     'max_confidence': max_confidence_val,
+                    #     'kulczynski': kulczynski_val,
+                    #     'cosine': cosine_val
+                    # }
+                    }
+                    results.append(result)
+
+            if results:
+                # Convert frozensets to lists before sending the response
+                results_serializable = json.loads(json.dumps(results, default=list))
+                return JsonResponse(results_serializable, safe=False)
+            else:
+                return JsonResponse({'error': 'No results found'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)})
+
+    return JsonResponse({'error': 'Invalid request method'})
+
+
+    import numpy as np
+from mlxtend.frequent_patterns import apriori
+
+
+def calculate_lift(rules, data):
+    # Calculate Lift measure
+    # Lift = P(A and B) / (P(A) * P(B))
+    lift_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        support_A_B = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1)) / len(data)
+        support_A = np.sum(data.loc[:, antecedent] == 1) / len(data)
+        support_B = np.sum(data.loc[:, consequent] == 1) / len(data)
+        lift = support_A_B / (support_A * support_B)
+        lift_values.append(lift)
+    return lift_values
+
+def calculate_chi_square(rules, data):
+    # Calculate Chi-Square measure
+    # Chi-Square = N * (ad - bc)^2 / [(a + b)(c + d)(a + c)(b + d)]
+    chi_square_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        a = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1))
+        b = np.sum((data.loc[:, antecedent] == 0) & (data.loc[:, consequent] == 1))
+        c = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 0))
+        d = np.sum((data.loc[:, antecedent] == 0) & (data.loc[:, consequent] == 0))
+        chi_square = len(data) * ((a * d - b * c) ** 2) / ((a + b) * (c + d) * (a + c) * (b + d))
+        chi_square_values.append(chi_square)
+    return chi_square_values
+
+def calculate_all_confidence(rules, data):
+    # Calculate All Confidence measure
+    # All Confidence = P(A and B) / max(P(A), P(B))
+    all_confidence_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        support_A_B = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1)) / len(data)
+        support_A = np.sum(data.loc[:, antecedent] == 1) / len(data)
+        support_B = np.sum(data.loc[:, consequent] == 1) / len(data)
+        all_confidence = support_A_B / max(support_A, support_B)
+        all_confidence_values.append(all_confidence)
+    return all_confidence_values
+
+def calculate_max_confidence(rules, data):
+    # Calculate Max Confidence measure
+    # Max Confidence = P(A and B) / P(A)
+    max_confidence_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        support_A_B = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1)) / len(data)
+        support_A = np.sum(data.loc[:, antecedent] == 1) / len(data)
+        max_confidence = support_A_B / support_A
+        max_confidence_values.append(max_confidence)
+    return max_confidence_values
+
+def calculate_kulczynski(rules, data):
+    # Calculate Kulczynski measure
+    # Kulczynski = (P(A and B) / P(A)) + (P(A and B) / P(B)) / 2
+    kulczynski_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        support_A_B = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1)) / len(data)
+        support_A = np.sum(data.loc[:, antecedent] == 1) / len(data)
+        support_B = np.sum(data.loc[:, consequent] == 1) / len(data)
+        kulczynski = (support_A_B / support_A + support_A_B / support_B) / 2
+        kulczynski_values.append(kulczynski)
+    return kulczynski_values
+
+def calculate_cosine(rules, data):
+    # Calculate Cosine measure
+    # Cosine = P(A and B) / sqrt(P(A) * P(B))
+    cosine_values = []
+    for rule in rules:
+        antecedent = rule[0]
+        consequent = rule[1]
+        support_A_B = np.sum((data.loc[:, antecedent] == 1) & (data.loc[:, consequent] == 1)) / len(data)
+        support_A = np.sum(data.loc[:, antecedent] == 1) / len(data)
+        support_B = np.sum(data.loc[:, consequent] == 1) / len(data)
+        cosine = support_A_B / np.sqrt(support_A * support_B)
+        cosine_values.append(cosine)
+    return cosine_values
+
+
+
+
+
+
+
